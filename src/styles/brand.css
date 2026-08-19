@@ -1,0 +1,996 @@
+/*
+ * NADAV — art direction.
+ *
+ * Identity: deep cobalt night, one bone-coloured daylight section, brass as the
+ * only warm accent. Typography is the primary image: Heebo 900 set enormous with
+ * hard negative tracking, which at 60px+ stops reading as UI and becomes display.
+ *
+ * Signature devices, reused so the page reads as one designed thing:
+ *   BEVEL     panels are cut polygons, never rounded rectangles
+ *   GHOST     a huge low-contrast word sits behind each section
+ *   DIAMOND   a small brass lozenge marks every kicker
+ *   MARQUEE   motion carries the argument in section 2
+ *   NUMERALS  outline figures at display scale in section 4
+ *
+ * Composition changes every section on purpose: a diagonal type/support split,
+ * then a moving band, then an asymmetric editorial split, then a numbered run
+ * with a drawn spine, then a centred close.
+ *
+ * NO ELEMENT IS HIDDEN BY CSS. Entrance states belong to GSAP, so if the JS
+ * never runs the page still reads. Under prefers-reduced-motion, gsap.matchMedia
+ * simply never adds the animation contexts.
+ */
+
+.br {
+  /* night */
+  --ink: #06152b;
+  --ink-2: #091f3d;
+  --deep: #0a2a57;
+  --blue: #026fd7;
+  --azure: #4fa3ff;
+  --glow: #7fc4ff;
+
+  /* daylight */
+  --bone: #ece7dd;
+  --bone-2: #ded7c9;
+  --on-bone: #11161d;
+  --on-bone-mute: #5a5f66;
+
+  /* the only warm accent */
+  --brass: #d99a2b;
+
+  --on-ink: #eaf1fa;
+  --on-ink-mute: #8ba3c0;
+
+  --pad: 22px;
+  --bevel: 26px;
+
+  background: var(--ink);
+  color: var(--on-ink);
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: 17px;
+  line-height: 1.68;
+  overflow-x: clip;
+}
+
+.br ::selection {
+  background: var(--brass);
+  color: var(--ink);
+}
+
+.br :focus-visible {
+  outline: 2px solid var(--glow);
+  outline-offset: 4px;
+}
+
+.br-wrap {
+  max-width: 1240px;
+  margin-inline: auto;
+  padding-inline: var(--pad);
+}
+
+/* ---------------- type ---------------- */
+
+.br-d {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.045em;
+  line-height: 0.92;
+}
+
+.br-d span {
+  display: block;
+}
+
+/* SplitText wraps each line in .br-line; keep the mask tight to the glyphs. */
+.br-line {
+  padding-block-end: 0.03em;
+}
+
+.br-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.2em;
+  color: var(--on-ink-mute);
+}
+
+.br-kicker::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  background: var(--brass);
+  transform: rotate(45deg);
+  flex: none;
+}
+
+.br-lede {
+  font-size: 17.5px;
+  line-height: 1.68;
+  color: var(--on-ink-mute);
+}
+
+/* ---------------- ghost word ---------------- */
+
+.br-ghost {
+  position: absolute;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.06em;
+  line-height: 0.8;
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+  z-index: 0;
+}
+
+/* ---------------- bevelled panel ---------------- */
+
+.br-bevel {
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--bevel)) 0,
+    100% var(--bevel),
+    100% 100%,
+    var(--bevel) 100%,
+    0 calc(100% - var(--bevel))
+  );
+}
+
+/* ---------------- buttons ---------------- */
+
+.br-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 58px;
+  padding-inline: 28px;
+  background: var(--blue);
+  color: #fff;
+  font-size: 17px;
+  font-weight: 700;
+  clip-path: polygon(
+    0 0,
+    calc(100% - 14px) 0,
+    100% 14px,
+    100% 100%,
+    14px 100%,
+    0 calc(100% - 14px)
+  );
+  transition: background 200ms ease, transform 200ms ease;
+}
+
+.br-cta:hover {
+  background: #0b81ee;
+  transform: translateY(-2px);
+}
+
+.br-cta-a {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  font-size: 13px;
+  transform: scaleX(-1);
+}
+
+.br-quiet {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 15px;
+  color: var(--on-ink-mute);
+  border-block-end: 1px solid rgba(139, 163, 192, 0.4);
+}
+
+.br-quiet:hover {
+  color: var(--on-ink);
+}
+
+/* ================= scroll progress ================= */
+
+.br-prog {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--brass), var(--azure));
+  z-index: 60;
+}
+
+/* ================= nav ================= */
+
+/* Mobile: one floating pill at the bottom, where the thumb already is. */
+.br-nav {
+  position: fixed;
+  z-index: 55;
+  inset-block-end: 14px;
+  inset-inline: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 7px 7px 16px;
+  background: rgba(9, 31, 61, 0.86);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  border: 1px solid rgba(127, 196, 255, 0.2);
+  clip-path: polygon(
+    0 0,
+    calc(100% - 16px) 0,
+    100% 16px,
+    100% 100%,
+    16px 100%,
+    0 calc(100% - 16px)
+  );
+}
+
+.br-mark {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 900;
+  font-size: 19px;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.br-mark small {
+  display: block;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 8.5px;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  color: var(--on-ink-mute);
+  margin-block-start: 3px;
+}
+
+.br-nav-cta {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: 18px;
+  margin-inline-start: auto;
+  background: var(--blue);
+  color: #fff;
+  font-size: 14.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  clip-path: polygon(
+    0 0,
+    calc(100% - 12px) 0,
+    100% 12px,
+    100% 100%,
+    12px 100%,
+    0 calc(100% - 12px)
+  );
+}
+
+.br-nav-links {
+  display: none;
+}
+
+/* ================= 1. HERO ================= */
+
+.br-hero {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  /* Bottom padding clears the fixed pill so the secondary link is never behind it. */
+  padding-block: 92px 172px;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.br-hero-glow {
+  position: absolute;
+  z-index: -2;
+  inset-block-start: -30%;
+  inset-inline-end: -45%;
+  width: 145%;
+  aspect-ratio: 1;
+  background: radial-gradient(
+    circle at center,
+    rgba(2, 111, 215, 0.6) 0%,
+    rgba(2, 111, 215, 0.16) 40%,
+    transparent 68%
+  );
+}
+
+.br-hero .br-ghost {
+  inset-block-start: 3%;
+  inset-inline-start: -7%;
+  font-size: min(58vw, 30rem);
+  color: rgba(127, 196, 255, 0.05);
+}
+
+/* Target the content wrapper only. A `> *` rule here matches the absolutely
+   positioned glow and ghost at equal specificity, wins by source order, and
+   drops a viewport-sized element into the flow. */
+.br-hero > .br-wrap {
+  position: relative;
+  z-index: 1;
+}
+
+.br-h1 {
+  margin-block-start: 24px;
+  font-size: clamp(3.1rem, 14.2vw, 8.6rem);
+}
+
+.br-h1 .br-blue {
+  color: var(--azure);
+}
+
+.br-hero-body {
+  margin-block-start: 28px;
+  max-width: 34ch;
+}
+
+.br-hero-acts {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  margin-block-start: 30px;
+}
+
+.br-scroll {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-block-start: 30px;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.22em;
+  color: var(--on-ink-mute);
+}
+
+.br-scroll-line {
+  width: 54px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--brass), transparent);
+}
+
+/* ================= 2. MANUAL ================= */
+
+.br-manual {
+  position: relative;
+  background: var(--bone);
+  color: var(--on-bone);
+  padding-block: 76px 78px;
+  overflow: hidden;
+}
+
+.br-manual .br-kicker {
+  color: var(--on-bone-mute);
+}
+
+.br-h2 {
+  margin-block-start: 20px;
+  font-size: clamp(2.15rem, 9.6vw, 5.2rem);
+}
+
+/* Colour belongs to the ground, not to the heading class. */
+.br-manual .br-h2 {
+  color: var(--on-bone);
+}
+
+.br-builds .br-h2 {
+  color: var(--on-ink);
+}
+
+/* Full-bleed band: it must read as a band, not a boxed list. */
+.br-marq {
+  margin-block: 40px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.br-marq-row {
+  display: flex;
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+}
+
+.br-marq-track {
+  display: flex;
+  flex: none;
+  gap: 12px;
+  padding-inline-end: 12px;
+  direction: ltr;
+  will-change: transform;
+}
+
+.br-task {
+  flex: none;
+  padding: 11px 20px;
+  border: 1px solid rgba(17, 22, 29, 0.18);
+  font-size: 15px;
+  color: #33383f;
+  white-space: nowrap;
+  clip-path: polygon(
+    0 0,
+    calc(100% - 11px) 0,
+    100% 11px,
+    100% 100%,
+    11px 100%,
+    0 calc(100% - 11px)
+  );
+}
+
+/* Every fourth chip is filled: rhythm inside the band. */
+.br-task[data-hot="true"] {
+  background: var(--on-bone);
+  border-color: var(--on-bone);
+  color: var(--bone);
+}
+
+.br-turn {
+  margin-block-start: 44px;
+  display: grid;
+  gap: 14px;
+}
+
+.br-turn-lead {
+  font-size: 17.5px;
+  color: var(--on-bone-mute);
+  max-width: 40ch;
+}
+
+.br-turn-punch {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.035em;
+  line-height: 1.02;
+  font-size: clamp(1.75rem, 8vw, 3.4rem);
+  color: var(--on-bone);
+}
+
+.br-turn-punch b {
+  color: var(--blue);
+  font-weight: 900;
+}
+
+/* ================= 3. MEET ================= */
+
+.br-meet {
+  position: relative;
+  padding-block: 84px 86px;
+  overflow: hidden;
+}
+
+.br-meet .br-ghost {
+  inset-block-end: 4%;
+  inset-inline-start: -3%;
+  font-size: min(34vw, 15rem);
+  color: rgba(127, 196, 255, 0.06);
+}
+
+.br-meet > .br-wrap {
+  position: relative;
+  z-index: 1;
+}
+
+.br-meet-grid {
+  margin-block-start: 22px;
+}
+
+/* Portrait: a cut panel, bleeding off the end edge. */
+.br-portrait {
+  position: relative;
+  width: 68%;
+  margin-inline-start: auto;
+  margin-inline-end: calc(var(--pad) * -1);
+  aspect-ratio: 3 / 4;
+  --bevel: 40px;
+  border: 1px solid rgba(127, 196, 255, 0.16);
+  overflow: hidden;
+}
+
+/* Inner layer exists so parallax can move the image without fighting the clip. */
+.br-portrait-inner {
+  position: absolute;
+  inset: -8% 0;
+  background:
+    radial-gradient(80% 60% at 70% 20%, rgba(79, 163, 255, 0.34), transparent 64%),
+    linear-gradient(160deg, var(--deep), var(--ink) 82%);
+}
+
+.br-portrait-inner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Intentional empty state, not a broken image. [NEEDS NADAV INPUT] */
+.br-portrait-slot {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.br-portrait-slot span {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.2em;
+  color: rgba(234, 241, 250, 0.4);
+}
+
+.br-portrait-slot i {
+  width: 46px;
+  height: 46px;
+  margin-inline: auto;
+  border: 1px solid rgba(234, 241, 250, 0.32);
+  transform: rotate(45deg);
+}
+
+/* The greeting sits on the portrait's lower start corner. */
+.br-hello {
+  position: relative;
+  z-index: 2;
+  width: fit-content;
+  margin-block-start: -62px;
+  margin-inline-start: calc(var(--pad) * -1);
+  padding: 16px 24px 16px calc(var(--pad) + 8px);
+  background: var(--ink);
+  font-size: clamp(2.6rem, 12.4vw, 5.4rem);
+  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 0 100%);
+}
+
+.br-hello span:last-child {
+  color: var(--azure);
+}
+
+/* The two worlds. They arrive from opposite edges and overlap; the seam is lit
+   in brass because the overlap is the whole claim of this section. */
+.br-worlds {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  margin-block-start: 44px;
+}
+
+.br-world {
+  flex: 1;
+  --bevel: 18px;
+  display: grid;
+  place-items: center;
+  min-height: 82px;
+  padding: 18px 14px;
+  text-align: center;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 800;
+  font-size: clamp(0.95rem, 4.2vw, 1.35rem);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.br-world[data-side="a"] {
+  background: rgba(2, 111, 215, 0.16);
+  border: 1px solid rgba(79, 163, 255, 0.4);
+  color: var(--glow);
+  margin-inline-end: -14px;
+}
+
+.br-world[data-side="b"] {
+  background: rgba(217, 154, 43, 0.13);
+  border: 1px solid rgba(217, 154, 43, 0.42);
+  color: #f0c476;
+  margin-inline-start: -14px;
+  z-index: 1;
+}
+
+/* the lit seam */
+.br-seam {
+  position: absolute;
+  inset-block: 12%;
+  inset-inline-start: 50%;
+  width: 2px;
+  margin-inline-start: -1px;
+  background: linear-gradient(180deg, transparent, var(--brass), transparent);
+  z-index: 2;
+  transform-origin: center;
+}
+
+.br-meet-body {
+  margin-block-start: 26px;
+  max-width: 40ch;
+}
+
+.br-meet-body p {
+  color: var(--on-ink-mute);
+}
+
+.br-meet-body p + p {
+  margin-block-start: 17px;
+}
+
+.br-meet-body p:last-child {
+  color: var(--on-ink);
+  font-weight: 600;
+}
+
+.br-pull {
+  margin-block-start: 34px;
+  padding-inline-start: 20px;
+  border-inline-start: 2px solid var(--brass);
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 800;
+  font-size: clamp(1.25rem, 5.4vw, 1.85rem);
+  line-height: 1.32;
+  letter-spacing: -0.025em;
+  color: var(--on-ink);
+  max-width: 28ch;
+}
+
+/* ================= 4. BUILDS ================= */
+
+.br-builds {
+  position: relative;
+  background: var(--ink-2);
+  padding-block: 80px 84px;
+  /* clip, not hidden: `overflow: hidden` on an ancestor breaks ScrollTrigger pinning */
+  overflow-x: clip;
+}
+
+.br-builds .br-ghost {
+  inset-block-end: 3%;
+  inset-inline-start: -5%;
+  font-size: min(40vw, 19rem);
+  color: rgba(127, 196, 255, 0.045);
+}
+
+.br-builds > .br-wrap {
+  position: relative;
+  z-index: 1;
+}
+
+.br-builds-sub {
+  margin-block-start: 18px;
+  max-width: 32ch;
+}
+
+/* Mobile: a plain vertical stack of panels. */
+.br-frame {
+  margin-block-start: 40px;
+  padding-inline: var(--pad);
+}
+
+.br-track {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.br-panel {
+  position: relative;
+  --bevel: 22px;
+  padding: 26px 22px 28px;
+  background: linear-gradient(
+    165deg,
+    rgba(10, 42, 87, 0.9),
+    rgba(6, 21, 43, 0.9)
+  );
+  border: 1px solid rgba(127, 196, 255, 0.16);
+}
+
+/* Outline figures at display scale: the number is a graphic, not a label. */
+.br-num {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 900;
+  font-size: clamp(2.9rem, 13vw, 4.6rem);
+  line-height: 0.8;
+  letter-spacing: -0.05em;
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(127, 196, 255, 0.42);
+  transition: -webkit-text-stroke-color 300ms ease;
+}
+
+.br-item:hover .br-num {
+  -webkit-text-stroke-color: var(--brass);
+}
+
+.br-item-t {
+  margin-block-start: 16px;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 800;
+  font-size: clamp(1.35rem, 6vw, 2.1rem);
+  line-height: 1.14;
+  letter-spacing: -0.03em;
+}
+
+/* Numeral sits above the title inside each panel and bleeds toward the corner. */
+.br-panel .br-num {
+  display: block;
+  line-height: 0.78;
+}
+
+.br-item-b {
+  margin-block-start: 10px;
+  font-size: 16.5px;
+  color: var(--on-ink-mute);
+  max-width: 44ch;
+}
+
+/* ================= 5. CLOSE ================= */
+
+.br-close {
+  position: relative;
+  padding-block: 92px 150px;
+  overflow: hidden;
+  text-align: center;
+}
+
+.br-close-glow {
+  position: absolute;
+  inset-block-end: -55%;
+  inset-inline-start: -25%;
+  width: 150%;
+  aspect-ratio: 1;
+  background: radial-gradient(
+    circle at center,
+    rgba(2, 111, 215, 0.45) 0%,
+    transparent 62%
+  );
+  pointer-events: none;
+}
+
+.br-close > .br-wrap {
+  position: relative;
+  z-index: 1;
+}
+
+.br-h3 {
+  font-size: clamp(2.5rem, 11.5vw, 6rem);
+}
+
+.br-h3 .br-blue {
+  color: var(--azure);
+}
+
+.br-close-sub {
+  margin-block: 26px 34px;
+  max-width: 34ch;
+  margin-inline: auto;
+}
+
+.br-foot {
+  margin-block-start: 60px;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--on-ink-mute);
+}
+
+/* ================= DESKTOP ================= */
+
+@media (min-width: 900px) {
+  .br {
+    --pad: 56px;
+    font-size: 19px;
+  }
+
+  /* Two pills instead of one full-width bar: a wordmark at the start edge and
+     the links plus CTA at the end. A single wide bar with one bevelled corner
+     read as a mistake rather than a decision. */
+  .br-nav {
+    inset-block-start: 22px;
+    inset-block-end: auto;
+    inset-inline: 40px;
+    background: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: 0;
+    clip-path: none;
+    padding: 0;
+    pointer-events: none;
+  }
+
+  .br-nav > * {
+    pointer-events: auto;
+  }
+
+  .br-mark {
+    padding: 10px 20px;
+    background: rgba(9, 31, 61, 0.82);
+    backdrop-filter: blur(18px) saturate(150%);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    border: 1px solid rgba(127, 196, 255, 0.2);
+    clip-path: polygon(
+      0 0,
+      calc(100% - 14px) 0,
+      100% 14px,
+      100% 100%,
+      14px 100%,
+      0 calc(100% - 14px)
+    );
+  }
+
+  .br-nav-links {
+    display: flex;
+    align-items: center;
+    gap: 26px;
+    margin-inline-start: auto;
+    padding: 0 22px;
+    height: 46px;
+    background: rgba(9, 31, 61, 0.82);
+    backdrop-filter: blur(18px) saturate(150%);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    border: 1px solid rgba(127, 196, 255, 0.2);
+    clip-path: polygon(
+      0 0,
+      calc(100% - 14px) 0,
+      100% 14px,
+      100% 100%,
+      14px 100%,
+      0 calc(100% - 14px)
+    );
+  }
+
+  .br-nav-links a {
+    font-size: 15px;
+    color: var(--on-ink-mute);
+    transition: color 200ms ease;
+  }
+
+  .br-nav-links a:hover {
+    color: var(--on-ink);
+  }
+
+  .br-nav-cta {
+    margin-inline-start: 10px;
+    min-height: 46px;
+  }
+
+  /* HERO: a real diagonal. Headline occupies the upper start area at full
+     display scale; the support column sits lower and opposite, so the canvas
+     carries tension instead of a dead half. */
+  .br-hero {
+    padding-block: 150px 104px;
+  }
+
+  /* The headline needs the full measure at 137px or the browser re-wraps it and
+     the authored breaks die. The support column then sits below and opposite,
+     which is what carries the diagonal. */
+  .br-hero-grid {
+    display: grid;
+    grid-template-columns: 1fr 0.92fr;
+    grid-template-areas:
+      "main main"
+      "gap  side";
+    gap: 52px 60px;
+    align-items: end;
+  }
+
+  .br-hero-main {
+    grid-area: main;
+  }
+
+  .br-hero-side {
+    grid-area: side;
+  }
+
+  .br-hero-body {
+    margin-block-start: 0;
+    max-width: 40ch;
+    font-size: 20px;
+  }
+
+  .br-hero-acts {
+    flex-direction: row;
+    align-items: center;
+    gap: 28px;
+  }
+
+  .br-lede {
+    font-size: 20px;
+  }
+
+  /* MEET becomes a true split. */
+  .br-meet-grid {
+    display: grid;
+    grid-template-columns: 0.85fr 1fr;
+    gap: 64px;
+    align-items: center;
+    margin-block-start: 44px;
+  }
+
+  .br-portrait {
+    width: 100%;
+    margin: 0;
+    aspect-ratio: 3 / 4;
+    --bevel: 72px;
+  }
+
+  .br-hello {
+    margin: 0 0 26px;
+    padding: 0;
+    background: none;
+    clip-path: none;
+  }
+
+  .br-meet-body {
+    max-width: 46ch;
+  }
+
+  .br-meet-body p,
+  .br-turn-lead {
+    font-size: 19.5px;
+  }
+
+  /* BUILDS: the section pins and the panels travel sideways, so scrolling down
+     is what moves the reader across the range of work. */
+  .br-frame {
+    margin-block-start: 64px;
+    overflow: hidden;
+    padding-inline: 0;
+    margin-inline-start: max(var(--pad), calc((100vw - 1240px) / 2 + var(--pad)));
+  }
+
+  .br-track {
+    flex-direction: row;
+    gap: 26px;
+    width: max-content;
+    padding-inline-end: 20vw;
+    will-change: transform;
+  }
+
+  /* Tall enough that the pinned moment fills its frame instead of floating as a
+     short strip in a 900px viewport. Copy sits at the bottom, numeral at the top,
+     so the panels read as posters rather than as cards. */
+  .br-panel {
+    width: 430px;
+    min-height: 460px;
+    flex: none;
+    --bevel: 30px;
+    padding: 40px 34px 44px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .br-panel .br-item-t {
+    margin-block-start: auto;
+  }
+
+  .br-item-b {
+    margin-block-start: 14px;
+    font-size: 18px;
+    max-width: none;
+  }
+
+  .br-task {
+    font-size: 17px;
+    padding: 13px 24px;
+  }
+
+  .br-manual,
+  .br-builds,
+  .br-meet {
+    padding-block: 120px;
+  }
+
+  .br-close {
+    padding-block: 140px 170px;
+  }
+
+  .br-marq {
+    margin-block-start: 56px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .br-h1 {
+    font-size: 8.6rem;
+  }
+
+  .br-h2 {
+    font-size: 5rem;
+  }
+}
